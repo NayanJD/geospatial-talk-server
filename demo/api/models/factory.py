@@ -27,6 +27,7 @@ class FactoryAdmin(OSMGeoAdmin):
 class FactorySerializer(serializers.ModelSerializer):
 
     def validate_geofence(self, value):
+        print(value)
         if not isinstance(value, Polygon):
             raise serializers.ValidationError("geofence should be a polygon")
 
