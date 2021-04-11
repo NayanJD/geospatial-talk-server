@@ -1,2 +1,3 @@
-from .factory import Factory
-from .factory_user import FactoryUser
+from .factory import *
+from .factory_user import *
+from .user import *
