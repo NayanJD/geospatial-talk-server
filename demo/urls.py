@@ -17,12 +17,20 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt import views as jwt_views
 from demo.api.views import UserView, FactoryView, FactoryUserView
+from demo.api.consumers import LocationConsumer
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/token', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/user', UserView.as_view()),
-    path('api/factory', FactoryView.as_view()),
-    path('api/factory/<str:pk>/user', FactoryUserView.as_view())
+    path("admin/", admin.site.urls),
+    path(
+        "api/token", jwt_views.TokenObtainPairView.as_view(), name="token_obtain_pair"
+    ),
+    path(
+        "api/token/refresh/", jwt_views.TokenRefreshView.as_view(), name="token_refresh"
+    ),
+    path("api/user", UserView.as_view()),
+    path("api/factory", FactoryView.as_view()),
+    path("api/factory/<str:pk>/user", FactoryUserView.as_view()),
 ]
+
+websocket_urlpatterns = [path("ws/location_update", LocationConsumer.as_asgi())]
