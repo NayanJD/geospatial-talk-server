@@ -20,6 +20,17 @@ class FactoryUser(models.Model):
         db_table = "factory_users"
 
 class FactoryUserSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        factory = validated_data.pop("factory")
+
+        factory_user = FactoryUser.objects.create(
+            factory=factory, **validated_data
+        )
+
+        return factory_user
+
+
     class Meta: 
         model = FactoryUser
-        fields = "__all__"
+        fields = ["id", "user"]
