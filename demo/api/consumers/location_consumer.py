@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class LocationConsumer(JsonWebsocketConsumer):
-    groups = []
+    # groups = ["factory"]
 
     def connect(self):
         # self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
@@ -25,12 +25,11 @@ class LocationConsumer(JsonWebsocketConsumer):
 
         self.accept()
 
-    def disconnect(self):
+    def disconnect(self, code):
         pass
         # Leave room group
-        # async_to_sync(self.channel_layer.group_discard)(
-        #     self.room_group_name, self.channel_name
-        # )
+        # for group in self.groups:
+        # async_to_sync(self.channel_layer.group_discard)("factory", self.channel_name)
 
     # Receive message from WebSocket
     def receive_json(self, content):
@@ -62,6 +61,16 @@ class LocationConsumer(JsonWebsocketConsumer):
                         "longitude": longitude,
                     },
                 )
+
+                async_to_sync(self.channel_layer.group_send)(
+                    "factory",
+                    {
+                        "type": "location_update",
+                        "latitude": latitude,
+                        "longitude": longitude,
+                        "user_id": self.user.id,
+                    },
+                )
             else:
                 self.send_json(("_", "Unknown type provided", False))
 
@@ -76,6 +85,18 @@ class LocationConsumer(JsonWebsocketConsumer):
         # Send message to WebSocket
         self.send_json(("location_update", message, True))
 
+        # print(self.groups)
+
+        # for group in self.groups:
+        #     async_to_sync(self.channel_layer.group_send)(
+        #         group,
+        #         {
+        #             "type": "location_update",
+        #             "latitude": latitude,
+        #             "longitude": longitude,
+        #         },
+        #     )
+
     def auth(self, event):
         username = event["username"]
         password = event["password"]
@@ -89,15 +110,16 @@ class LocationConsumer(JsonWebsocketConsumer):
 
             factory_user = user.factories.all()
 
-            if factory_user:
-                self.groups.append(
-                    getFactoryChannelGroupName(factory_user[0].factory.id)
-                )
+            # if factory_user:
+            #     # self.groups.append(
+            #     #     getFactoryChannelGroupName(factory_user[0].factory.id)
+            #     # )
 
-                async_to_sync(self.channel_layer.group_add)(
-                    getFactoryChannelGroupName(factory_user[0].factory.id),
-                    self.channel_name,
-                )
+            #     # for group in self.groups:
+            #     async_to_sync(self.channel_layer.group_add)(
+            #         "factory",
+            #         self.channel_name,
+            #     )
         else:
             self.send_json(("auth", "Bad bearer token", False))
 

@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt import views as jwt_views
 from demo.api.views import UserView, FactoryView, FactoryUserView
-from demo.api.consumers import LocationConsumer
+from demo.api.consumers import LocationConsumer, FactoryConsumer
 
 
 urlpatterns = [
@@ -33,4 +33,4 @@ urlpatterns = [
     path("api/factory/<str:pk>/user", FactoryUserView.as_view()),
 ]
 
-websocket_urlpatterns = [path("ws/location_update", LocationConsumer.as_asgi())]
+websocket_urlpatterns = [path("ws/location_update", LocationConsumer.as_asgi()), path("ws/factory", FactoryConsumer.as_asgi())]
