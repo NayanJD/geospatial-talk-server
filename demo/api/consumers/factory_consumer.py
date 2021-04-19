@@ -24,7 +24,7 @@ class FactoryConsumer(JsonWebsocketConsumer):
 
         self.accept()
 
-    def disconnect(self):
+    def disconnect(self, code):
         pass
         # Leave room group
         for group in self.groups:
