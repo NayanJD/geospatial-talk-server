@@ -33,4 +33,7 @@ urlpatterns = [
     path("api/factory/<str:pk>/user", FactoryUserView.as_view()),
 ]
 
-websocket_urlpatterns = [path("ws/location_update", LocationConsumer.as_asgi()), path("ws/factory", FactoryConsumer.as_asgi())]
+websocket_urlpatterns = [
+    path("ws/location_update", LocationConsumer.as_asgi()),
+    path("ws/factory/<str:factory_id>", FactoryConsumer.as_asgi()),
+]

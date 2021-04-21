@@ -3,8 +3,10 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 from django.contrib.auth import authenticate
 from django.http import HttpRequest
+from django.contrib.gis.geos import Point
 
 from demo.api.utils import getWebsocketResponseDict, getFactoryChannelGroupName
+from demo.api.models import Factory
 
 import logging
 
@@ -15,7 +17,11 @@ class FactoryConsumer(JsonWebsocketConsumer):
     groups = ["factory"]
 
     def connect(self):
-        # self.factory_id = self.scope["url_route"]["kwargs"]["room_name"]
+        print(self.scope)
+        self.factory_id = self.scope["url_route"]["kwargs"]["factory_id"]
+
+        self.factory = Factory.objects.get(pk=self.factory_id)
+
         # self.room_group_name = "chat_%s" % self.room_name
 
         # Join room group
@@ -63,14 +69,28 @@ class FactoryConsumer(JsonWebsocketConsumer):
         message = {}
 
         print("event", event)
-        message["latitude"] = event["latitude"]
 
-        message["longitude"] = event["longitude"]
+        latitude = event["latitude"]
+        longitude = event["longitude"]
+        user_id = event["user_id"]
 
-        message["user_id"] = event["user_id"]
+        is_inside = False
+        if self.factory.geofence.contains(Point(latitude, longitude)):
+            is_inside = True
 
         # Send message to WebSocket
-        self.send_json(("location_update", message, True))
+        self.send_json(
+            (
+                "location_update",
+                {
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "user_id": user_id,
+                    "is_inside": is_inside,
+                },
+                True,
+            )
+        )
 
     def decode_json(self, text_data):
         is_authenticated = True
