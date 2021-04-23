@@ -1,6 +1,6 @@
 import json
-from asgiref.sync import async_to_sync
-from channels.generic.websocket import JsonWebsocketConsumer
+from asgiref.sync import async_to_sync, sync_to_async
+from channels.generic.websocket import JsonWebsocketConsumer, AsyncJsonWebsocketConsumer
 from django.contrib.auth import authenticate
 from django.http import HttpRequest
 from django.contrib.gis.geos import Point
@@ -13,31 +13,31 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class FactoryConsumer(JsonWebsocketConsumer):
+class FactoryConsumer(AsyncJsonWebsocketConsumer):
     groups = ["factory"]
 
-    def connect(self):
+    async def connect(self):
         print(self.scope)
         self.factory_id = self.scope["url_route"]["kwargs"]["factory_id"]
 
-        self.factory = Factory.objects.get(pk=self.factory_id)
+        self.factory = await sync_to_async(Factory.objects.get)(pk=self.factory_id)
 
         # self.room_group_name = "chat_%s" % self.room_name
 
         # Join room group
         for group in self.groups:
-            async_to_sync(self.channel_layer.group_add)(group, self.channel_name)
+            await self.channel_layer.group_add(group, self.channel_name)
 
-        self.accept()
+        await self.accept()
 
-    def disconnect(self, code):
+    async def disconnect(self, code):
         pass
         # Leave room group
         for group in self.groups:
-            async_to_sync(self.channel_layer.group_add)(group, self.channel_name)
+            await self.channel_layer.group_add(group, self.channel_name)
 
     # Receive message from WebSocket
-    def receive_json(self, content):
+    async def receive_json(self, content):
         if not content:
             return
 
@@ -52,7 +52,7 @@ class FactoryConsumer(JsonWebsocketConsumer):
             user_id = content["user_id"]
 
             # Send message to room group
-            async_to_sync(self.channel_layer.send)(
+            await self.channel_layer.send(
                 self.channel_name,
                 {
                     "type": "location_update",
@@ -62,10 +62,10 @@ class FactoryConsumer(JsonWebsocketConsumer):
                 },
             )
         else:
-            self.send_json(("_", "Unknown type provided", False))
+            await self.send_json(("_", "Unknown type provided", False))
 
     # Receive message from room group
-    def location_update(self, event):
+    async def location_update(self, event):
         message = {}
 
         print("event", event)
@@ -79,7 +79,7 @@ class FactoryConsumer(JsonWebsocketConsumer):
             is_inside = True
 
         # Send message to WebSocket
-        self.send_json(
+        await self.send_json(
             (
                 "location_update",
                 {
@@ -92,7 +92,7 @@ class FactoryConsumer(JsonWebsocketConsumer):
             )
         )
 
-    def decode_json(self, text_data):
+    async def decode_json(self, text_data):
         is_authenticated = True
         if not getattr(self, "user", None):
             is_authenticated = False
@@ -106,7 +106,7 @@ class FactoryConsumer(JsonWebsocketConsumer):
             logger.error(e)
             self.send_json(("_", "Internal Error", False))
 
-    def encode_json(self, content, **kwargs):
+    async def encode_json(self, content, **kwargs):
         is_authenticated = True
         if not getattr(self, "user", None):
             is_authenticated = False
