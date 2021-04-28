@@ -15,12 +15,21 @@ logger = logging.getLogger(__name__)
 
 class FactoryConsumer(AsyncJsonWebsocketConsumer):
     groups = ["factory"]
+    factory = None
 
     async def connect(self):
-        print(self.scope)
-        self.factory_id = self.scope["url_route"]["kwargs"]["factory_id"]
+        query_string = self.scope["query_string"]
+        # print(type(query_string))
+        # print(query_string.decode("utf-8").split("="))
+        query_string_arr = query_string.decode("utf-8").split("=")
 
-        self.factory = await sync_to_async(Factory.objects.get)(pk=self.factory_id)
+        if query_string_arr and query_string_arr[0] == "distance":
+            self.distance = float(query_string_arr[1])
+
+        if "factory_id" in self.scope["url_route"]["kwargs"]:
+            self.factory_id = self.scope["url_route"]["kwargs"]["factory_id"]
+
+            self.factory = await sync_to_async(Factory.objects.get)(pk=self.factory_id)
 
         # self.room_group_name = "chat_%s" % self.room_name
 
@@ -75,8 +84,18 @@ class FactoryConsumer(AsyncJsonWebsocketConsumer):
         user_id = event["user_id"]
 
         is_inside = False
-        if self.factory.geofence.contains(Point(latitude, longitude)):
-            is_inside = True
+
+        point = Point(latitude, longitude, srid=4326)
+        # print(self.distance)
+        if getattr(self, "factory"):
+            if not getattr(self, "distance", None):
+                if self.factory.geofence.contains(point):
+                    is_inside = True
+            else:
+                transformedFence = self.factory.geofence.transform(900913, clone=True)
+                transformedPoint = point.transform(900913, clone=True)
+                if transformedFence.distance(transformedPoint) <= self.distance:
+                    is_inside = True
 
         # Send message to WebSocket
         await self.send_json(

@@ -36,4 +36,5 @@ urlpatterns = [
 websocket_urlpatterns = [
     path("ws/location_update", LocationConsumer.as_asgi()),
     path("ws/factory/<str:factory_id>", FactoryConsumer.as_asgi()),
+    path("ws/factory", FactoryConsumer.as_asgi()),
 ]
