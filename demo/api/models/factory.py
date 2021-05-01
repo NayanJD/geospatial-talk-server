@@ -14,7 +14,7 @@ class Factory(models.Model):
 
     geofence = gis_models.PolygonField()
 
-    external_geofence = gis_models.PolygonField()
+    external_geofence = gis_models.PolygonField(null=True)
 
     class Meta:
         db_table = "factories"
