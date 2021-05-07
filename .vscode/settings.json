@@ -1,0 +1,9 @@
+{
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": false,
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [ "--load-plugins=pylint_django", "--django-settings-module=cera.settings", "--disable=all", "--enable=F,E,unreachable,duplicate-key,unnecessary-semicolon,global-variable-not-assigned,unused-variable,unused-import,binary-op-exception,bad-format-string,anomalous-backslash-in-string,bad-open-mode" ] ,
+    "python.linting.lintOnSave": true,
+    "python.linting.pycodestyleEnabled": false,
+    "python.formatting.provider": "black",
+}

@@ -19,8 +19,7 @@ class FactoryConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
         query_string = self.scope["query_string"]
-        # print(type(query_string))
-        # print(query_string.decode("utf-8").split("="))
+
         query_string_arr = query_string.decode("utf-8").split("=")
 
         if query_string_arr and query_string_arr[0] == "distance":
@@ -31,19 +30,10 @@ class FactoryConsumer(AsyncJsonWebsocketConsumer):
 
             self.factory = await sync_to_async(Factory.objects.get)(pk=self.factory_id)
 
-        # self.room_group_name = "chat_%s" % self.room_name
-
-        # Join room group
-        for group in self.groups:
-            await self.channel_layer.group_add(group, self.channel_name)
-
         await self.accept()
 
     async def disconnect(self, code):
         pass
-        # Leave room group
-        for group in self.groups:
-            await self.channel_layer.group_add(group, self.channel_name)
 
     # Receive message from WebSocket
     async def receive_json(self, content):
@@ -86,9 +76,9 @@ class FactoryConsumer(AsyncJsonWebsocketConsumer):
         is_inside = False
 
         point = Point(latitude, longitude, srid=4326)
-        # print(self.distance)
-        if getattr(self, "factory"):
-            if not getattr(self, "distance", None):
+
+        if hasattr(self, "factory"):
+            if not hasattr(self, "distance"):
                 if self.factory.geofence.contains(point):
                     is_inside = True
             else:

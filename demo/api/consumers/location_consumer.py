@@ -55,16 +55,6 @@ class LocationConsumer(AsyncJsonWebsocketConsumer):
 
                 longitude = content["longitude"]
 
-                # Send message to room group
-                # async_to_sync(self.channel_layer.send)(
-                #     self.channel_name,
-                #     {
-                #         "type": "location_update",
-                #         "latitude": latitude,
-                #         "longitude": longitude,
-                #     },
-                # )
-
                 await self.channel_layer.send(
                     self.channel_name,
                     {
@@ -73,16 +63,6 @@ class LocationConsumer(AsyncJsonWebsocketConsumer):
                         "longitude": longitude,
                     },
                 )
-
-                # async_to_sync(self.channel_layer.group_send)(
-                #     "factory",
-                #     {
-                #         "type": "location_update",
-                #         "latitude": latitude,
-                #         "longitude": longitude,
-                #         "user_id": self.user.id,
-                #     },
-                # )
 
                 await self.channel_layer.group_send(
                     "factory",
